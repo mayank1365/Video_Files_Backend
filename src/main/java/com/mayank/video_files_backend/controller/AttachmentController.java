@@ -3,6 +3,11 @@ package com.mayank.video_files_backend.controller;
 import com.mayank.video_files_backend.entity.Attachment;
 import com.mayank.video_files_backend.model.ResponseData;
 import com.mayank.video_files_backend.service.AttachmentService;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -30,6 +35,16 @@ public class AttachmentController {
                 downloadUrl,
                 file.getContentType(),
                 file.getSize());
+    }
+
+    @GetMapping("/download/{fileId}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable String fileId) throws Exception {
+        Attachment attachment = attachmentService.getAttachment(fileId);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(attachment.getFile_type()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + attachment.getFile_name() + "\"")
+                .body(new ByteArrayResource(attachment.getData()));
     }
 
 }
