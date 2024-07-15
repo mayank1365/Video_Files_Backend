@@ -11,6 +11,7 @@ public class ResponseData {
 
     private String file_name;
     private String download_URL;
+    private String file_Id;
     private String file_type;
     private long file_size;
 }
