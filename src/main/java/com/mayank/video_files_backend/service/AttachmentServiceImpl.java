@@ -84,6 +84,20 @@ public class AttachmentServiceImpl implements AttachmentService {
         return attachmentRepository.save(mergedAttachment);
     }
 
+    @Override
+    public void saveShareToken(String fileId, String token, long expiryTime) {
+        tokenStore.put(token, new ShareToken(fileId, expiryTime));
+    }
+
+    @Override
+    public Attachment getSharedAttachment(String token) throws Exception {
+        ShareToken shareToken = tokenStore.get(token);
+        if (shareToken == null || System.currentTimeMillis() > shareToken.getExpiryTime()) {
+            throw new Exception("Invalid or expired token");
+        }
+        return getAttachment(shareToken.getFileId());
+    }
+
     private File convertToFile(Attachment attachment) throws IOException {
         File file = new File(attachment.getFile_name());
         try (FileOutputStream fos = new FileOutputStream(file)) {

@@ -10,5 +10,6 @@ public interface AttachmentService {
     Attachment getAttachment(String fileId) throws Exception;
     Attachment trimVideo(String fileId, String startTime, String endTime) throws Exception;
     Attachment mergeVideos(List<String> fileIds) throws Exception;
-
+    void saveShareToken(String fileId, String token, long expiryTime);
+    Attachment getSharedAttachment(String token) throws Exception;
 }

@@ -110,6 +110,36 @@ public class AttachmentController {
                 mergedAttachment.getData().length);
     }
 
+    @GetMapping("/share/{fileId}")
+    public String shareLink(@PathVariable String fileId, @RequestHeader("Authorization") String authToken) {
+        if (!isValidToken(authToken)) {
+            throw new UnauthorizedException("Invalid authentication token");
+        }
+
+        String token = UUID.randomUUID().toString();
+        long expiryTime = System.currentTimeMillis() + (1000 * 60 * 60); // 1 hour from now
+        attachmentService.saveShareToken(fileId, token, expiryTime);
+
+        return ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/shared/")
+                .path(token)
+                .toUriString();
+    }
+
+    @GetMapping("/shared/{token}")
+    public ResponseEntity<Resource> accessSharedFile(@PathVariable String token, @RequestHeader("Authorization") String authToken) throws Exception {
+        if (!isValidToken(authToken)) {
+            throw new UnauthorizedException("Invalid authentication token");
+        }
+
+        Attachment attachment = attachmentService.getSharedAttachment(token);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(attachment.getFile_type()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + attachment.getFile_name() + "\"")
+                .body(new ByteArrayResource(attachment.getData()));
+    }
+
     // Exception handler for UnauthorizedException
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<String> handleUnauthorizedException(UnauthorizedException ex) {
